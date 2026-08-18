@@ -10,3 +10,7 @@ audio-app/uploads/
 audio-app/audio_files/
 .DS_Store
 node_modules/
+
+*.wav
+*.mp3
+*.m4a
