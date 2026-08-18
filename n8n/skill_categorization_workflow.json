@@ -1,0 +1,189 @@
+{
+  "name": "ConsultBae - AI Skill Categorization",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "dcd40b1d-6fbb-4c9a-9141-5a45777f5115",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://trends-semi-aerospace-prep.trycloudflare.com/people/untagged?limit=1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "24a4ec89-41c0-41a1-ba7f-d094990440e0",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Classify this candidate into exactly ONE category:\n\nautomation-heavy\nweb-dev\ndata\nbackend\ngeneral-tech\n\nCandidate name: {{$json.full_name}}\n\nSkills: {{$json.skills}}\n\nReturn ONLY the category name. Do not provide explanations.",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a technical recruitment classifier.  Classify the candidate into exactly ONE category:  automation-heavy web-dev data backend general-tech  Rules: - automation-heavy: n8n, Zapier, Selenium, web scraping or workflow automation dominates - web-dev: React, JavaScript or frontend/web development dominates - data: Python, Pandas, SQL or data/analytics dominates - backend: FastAPI, REST APIs, Docker or backend/server development dominates - general-tech: none clearly dominates  Return ONLY the category name."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        0
+      ],
+      "id": "661994ca-5f24-45b0-b868-e80e172fa809",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        208
+      ],
+      "id": "89afcedb-5c96-4e86-887a-eba5c1699764",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "8Lg9jzoMtf4GmtwC",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "83718713-d6c5-4463-8063-a1a7f576e195",
+              "name": "skill_category",
+              "value": "={{$json.text}}",
+              "type": "string"
+            },
+            {
+              "id": "0d93e17d-227d-4b5a-92f5-b1f73a9404ff",
+              "name": "person_id",
+              "value": "={{ $('HTTP Request').item.json.person_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        816,
+        0
+      ],
+      "id": "ad09e78a-b9e7-478c-afd7-dfbabd47aa6e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://trends-semi-aerospace-prep.trycloudflare.com/people/category",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"person_id\": \"{{ $json.person_id }}\",\n  \"skill_category\": \"{{ $json.skill_category }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "95a3ee63-d318-4886-b132-a288b029dfbf",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8dc3228f-75bb-4df4-acb1-a4e41060a5b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "82b9ae6bb720bb33e99db51ca45828279eab47d68e7b27b80dd32dce422d2c6c"
+  },
+  "nodeGroups": [],
+  "id": "N6GxyPP8KFEPbaXd",
+  "tags": []
+}
