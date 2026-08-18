@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+*.db
+*.sqlite
+*.sqlite3
+audio-app/uploads/
+audio-app/audio_files/
+.DS_Store
+node_modules/
